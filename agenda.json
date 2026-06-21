@@ -11,5 +11,18 @@
     "studio": [],
     "personale": [],
     "tecnica": []
+  },
+  "2026-W25": {
+    "lavoro": [
+      {
+        "text": "fasfasfasfaf",
+        "done": false,
+        "carried": false,
+        "id": 1782081315412
+      }
+    ],
+    "studio": [],
+    "personale": [],
+    "tecnica": []
   }
 }
