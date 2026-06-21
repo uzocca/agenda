@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda Settimanale</title>
+<style>
+  :root {
+    --bg:       #1d2021;
+    --bg1:      #282828;
+    --bg2:      #3c3836;
+    --bg3:      #504945;
+    --fg:       #ebdbb2;
+    --fg2:      #d5c4a1;
+    --fg3:      #bdae93;
+    --orange:   #fe8019;
+    --yellow:   #d79921;
+    --green:    #98971a;
+    --blue:     #458588;
+    --purple:   #b16286;
+    --red:      #cc241d;
+    --aqua:     #689d6a;
+
+    --col-lavoro:   var(--orange);
+    --col-studio:   var(--blue);
+    --col-personale: var(--aqua);
+    --col-tecnica:  var(--purple);
+
+    --radius: 6px;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg1);
+    border-bottom: 1px solid var(--bg3);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .week-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .week-nav button {
+    background: var(--bg2);
+    border: none;
+    color: var(--fg2);
+    width: 28px; height: 28px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .week-nav button:hover { background: var(--bg3); }
+
+  .week-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg);
+    min-width: 200px;
+    text-align: center;
+  }
+
+  .btn-today {
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    color: var(--fg3);
+    padding: 5px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 12px;
+    transition: background .15s;
+  }
+  .btn-today:hover { background: var(--bg3); color: var(--fg); }
+
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sync-status {
+    font-size: 11px;
+    color: var(--fg3);
+  }
+  .sync-status.ok { color: var(--green); }
+  .sync-status.err { color: var(--red); }
+
+  .btn-settings {
+    background: none;
+    border: none;
+    color: var(--fg3);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .btn-settings:hover { color: var(--fg); }
+
+  /* ── BOARD ── */
+  .board {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    padding: 0;
+    min-height: 0;
+  }
+
+  .column {
+    border-right: 1px solid var(--bg2);
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 57px);
+  }
+  .column:last-child { border-right: none; }
+
+  .col-header {
+    padding: 14px 16px 10px;
+    border-bottom: 2px solid var(--col);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .col-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--col);
+  }
+
+  .col-count {
+    font-size: 11px;
+    color: var(--fg3);
+    background: var(--bg2);
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+
+  .col-lavoro    { --col: var(--col-lavoro); }
+  .col-studio    { --col: var(--col-studio); }
+  .col-personale { --col: var(--col-personale); }
+  .col-tecnica   { --col: var(--col-tecnica); }
+
+  /* ── QUICK ADD ── */
+  .quick-add {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--bg2);
+    background: var(--bg1);
+  }
+
+  .quick-add-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .quick-add input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--bg3);
+    border-radius: var(--radius);
+    color: var(--fg);
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .quick-add input:focus { border-color: var(--col); }
+  .quick-add input::placeholder { color: var(--bg3); }
+
+  .quick-add button {
+    background: var(--col);
+    border: none;
+    color: var(--bg);
+    width: 28px; height: 28px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity .15s;
+  }
+  .quick-add button:hover { opacity: .85; }
+
+  /* ── ITEMS ── */
+  .items {
+    flex: 1;
+    padding: 8px 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    background: var(--bg1);
+    border: 1px solid transparent;
+    cursor: default;
+    transition: border-color .12s, background .12s;
+    group: item;
+  }
+  .item:hover {
+    border-color: var(--bg3);
+    background: var(--bg2);
+  }
+  .item:hover .item-delete { opacity: 1; }
+
+  .item.done .item-text {
+    text-decoration: line-through;
+    color: var(--fg3);
+    opacity: .6;
+  }
+
+  .item-check {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--bg3);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .12s, border-color .12s;
+  }
+  .item.done .item-check {
+    background: var(--col);
+    border-color: var(--col);
+  }
+  .item.done .item-check::after {
+    content: "✓";
+    font-size: 10px;
+    color: var(--bg);
+    font-weight: bold;
+  }
+
+  .item-text {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--fg2);
+    word-break: break-word;
+  }
+
+  .item-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .item-delete, .item-carry {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    opacity: 0;
+    padding: 0 2px;
+    line-height: 1;
+    transition: opacity .12s;
+    color: var(--fg3);
+  }
+  .item:hover .item-delete,
+  .item:hover .item-carry { opacity: 1; }
+
+  .item-carry { color: var(--yellow); font-size: 12px; }
+  .item-delete:hover { color: var(--red); }
+  .item-carry:hover { color: var(--yellow); opacity: 1; }
+
+  .item-carried {
+    font-size: 10px;
+    color: var(--yellow);
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+
+  .empty-state {
+    color: var(--bg3);
+    font-size: 12px;
+    text-align: center;
+    padding: 24px 8px;
+    font-style: italic;
+  }
+
+  /* ── MODAL SETTINGS ── */
+  .overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg1);
+    border: 1px solid var(--bg3);
+    border-radius: 10px;
+    padding: 24px;
+    width: 360px;
+    max-width: 90vw;
+  }
+  .modal h2 { font-size: 15px; margin-bottom: 16px; color: var(--fg); }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; color: var(--fg3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .05em; }
+  .field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--bg3);
+    border-radius: var(--radius);
+    color: var(--fg);
+    padding: 7px 10px;
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+  }
+  .field input:focus { border-color: var(--orange); }
+
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .btn-cancel, .btn-save {
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-cancel { background: var(--bg2); color: var(--fg3); }
+  .btn-save { background: var(--orange); color: var(--bg); font-weight: 600; }
+
+  /* ── CARRY BADGE ── */
+  .carry-dot {
+    width: 6px; height: 6px;
+    background: var(--yellow);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  /* ── RESPONSIVE (mobile) ── */
+  @media (max-width: 700px) {
+    .board {
+      grid-template-columns: 1fr;
+    }
+    .column {
+      border-right: none;
+      border-bottom: 1px solid var(--bg2);
+      min-height: auto;
+    }
+    .col-header { position: relative; }
+  }
+
+  .btn-print {
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    color: var(--fg3);
+    padding: 5px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 12px;
+    transition: background .15s, color .15s;
+  }
+  .btn-print:hover { background: var(--bg3); color: var(--fg); }
+
+  /* ── PRINT ── */
+  @media print {
+    @page { size: A4 landscape; margin: 16mm 14mm; }
+
+    body { background: #fff !important; color: #111 !important; font-size: 11px; }
+
+    header, .quick-add, .item-actions, .btn-print,
+    .btn-settings, .btn-today, .week-nav button { display: none !important; }
+
+    .print-header {
+      display: block !important;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1.5px solid #333;
+    }
+
+    .board {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 12px !important;
+      padding: 0 !important;
+      min-height: auto !important;
+    }
+
+    .column {
+      border: 1px solid #ccc !important;
+      border-radius: 4px !important;
+      min-height: auto !important;
+      break-inside: avoid;
+    }
+
+    .col-header {
+      background: #f5f5f5 !important;
+      border-bottom: 2px solid #888 !important;
+      padding: 7px 10px !important;
+      position: relative !important;
+    }
+
+    .col-lavoro   .col-header { border-bottom-color: #d65d0e !important; }
+    .col-studio   .col-header { border-bottom-color: #076678 !important; }
+    .col-personale .col-header { border-bottom-color: #427b58 !important; }
+    .col-tecnica  .col-header { border-bottom-color: #8f3f71 !important; }
+
+    .col-title { color: #111 !important; }
+    .col-count { background: #e0e0e0 !important; color: #555 !important; }
+
+    .items {
+      overflow: visible !important;
+      padding: 6px 8px !important;
+    }
+
+    .item {
+      background: transparent !important;
+      border: none !important;
+      border-bottom: 1px solid #eee !important;
+      border-radius: 0 !important;
+      padding: 5px 2px !important;
+    }
+    .item:last-child { border-bottom: none !important; }
+
+    .item-check {
+      border-color: #aaa !important;
+      background: transparent !important;
+    }
+    .item.done .item-check {
+      background: #888 !important;
+      border-color: #888 !important;
+    }
+
+    .item-text { color: #111 !important; font-size: 11px !important; }
+    .item.done .item-text { color: #999 !important; }
+
+    .item-carried { color: #b8860b !important; opacity: 1 !important; }
+    .item-delete, .item-carry { display: none !important; }
+
+    .empty-state { color: #bbb !important; font-size: 10px !important; }
+  }
+
+  .print-header { display: none; }
+
+  /* scrollbar */
+  .items::-webkit-scrollbar { width: 4px; }
+  .items::-webkit-scrollbar-track { background: transparent; }
+  .items::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="week-nav">
+    <button id="prevWeek" title="Settimana precedente">‹</button>
+    <span class="week-label" id="weekLabel"></span>
+    <button id="nextWeek" title="Settimana successiva">›</button>
+  </div>
+  <button class="btn-today" id="btnToday">Oggi</button>
+  <div class="header-right">
+    <button class="btn-print" id="btnPrint" title="Salva settimana come PDF">⎙ PDF</button>
+    <span class="sync-status" id="syncStatus">●  non configurato</span>
+    <button class="btn-settings" id="btnSettings" title="Impostazioni sync">⚙</button>
+  </div>
+</header>
+
+<div class="board" id="board">
+  <div class="print-header" id="printHeader"></div>
+  <!-- colonne generate da JS -->
+</div>
+
+<!-- Modal impostazioni -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>Sync con GitHub</h2>
+    <div class="field">
+      <label>Token GitHub (repo scope)</label>
+      <input type="password" id="cfgToken" placeholder="ghp_…">
+    </div>
+    <div class="field">
+      <label>Repo (es. uzocca/agenda-data)</label>
+      <input type="text" id="cfgRepo" placeholder="username/repo">
+    </div>
+    <div class="field">
+      <label>File dati (default: agenda.json)</label>
+      <input type="text" id="cfgFile" placeholder="agenda.json">
+    </div>
+    <p style="font-size:11px; color:var(--fg3); margin-top:4px;">Le credenziali sono salvate solo in localStorage su questo dispositivo.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnCancel">Annulla</button>
+      <button class="btn-save" id="btnSaveSettings">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const COLUMNS = [
+  { id: 'lavoro',    label: 'Lavoro',    cls: 'col-lavoro'    },
+  { id: 'studio',   label: 'Studio',    cls: 'col-studio'    },
+  { id: 'personale',label: 'Personale', cls: 'col-personale' },
+  { id: 'tecnica',  label: 'Tecnica',   cls: 'col-tecnica'   },
+];
+
+// ── STATE ────────────────────────────────────────────────
+let currentWeekOffset = 0; // 0 = settimana corrente
+let data = {};             // { "2025-W22": { lavoro: [...], ... } }
+let githubConfig = {
+  token: localStorage.getItem('gh_token') || '',
+  repo:  localStorage.getItem('gh_repo')  || '',
+  file:  localStorage.getItem('gh_file')  || 'agenda.json',
+};
+let githubSha = null; // SHA dell'ultimo file su GitHub
+
+// ── WEEK UTILS ───────────────────────────────────────────
+function getMonday(offset = 0) {
+  const now = new Date();
+  const day = now.getDay() || 7;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - day + 1 + offset * 7);
+  monday.setHours(0,0,0,0);
+  return monday;
+}
+
+function weekKey(offset) {
+  const m = getMonday(offset);
+  const year = m.getFullYear();
+  const jan4 = new Date(year, 0, 4);
+  const week = Math.ceil(((m - jan4) / 86400000 + jan4.getDay() + 1) / 7);
+  return `${year}-W${String(week).padStart(2,'0')}`;
+}
+
+function weekLabel(offset) {
+  const m = getMonday(offset);
+  const s = new Date(m); s.setDate(m.getDate() + 6);
+  const fmt = d => d.toLocaleDateString('it-IT', { day:'numeric', month:'short' });
+  return `Settimana ${weekKey(offset).split('-W')[1]} · ${fmt(m)} – ${fmt(s)}`;
+}
+
+function ensureWeek(key) {
+  if (!data[key]) {
+    data[key] = {};
+    COLUMNS.forEach(c => { data[key][c.id] = []; });
+  }
+}
+
+// ── RENDER ───────────────────────────────────────────────
+function render() {
+  document.getElementById('weekLabel').textContent = weekLabel(currentWeekOffset);
+  const key = weekKey(currentWeekOffset);
+  ensureWeek(key);
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  COLUMNS.forEach(col => {
+    const items = data[key][col.id] || [];
+    const active = items.filter(i => !i.done).length;
+
+    const colEl = document.createElement('div');
+    colEl.className = `column ${col.cls}`;
+    colEl.innerHTML = `
+      <div class="col-header">
+        <span class="col-title">${col.label}</span>
+        <span class="col-count">${active}</span>
+      </div>
+      <div class="quick-add">
+        <div class="quick-add-row">
+          <input type="text" placeholder="Aggiungi voce…" data-col="${col.id}">
+          <button data-col="${col.id}" title="Aggiungi">+</button>
+        </div>
+      </div>
+      <div class="items" data-col="${col.id}">
+        ${items.length === 0
+          ? `<div class="empty-state">Niente per questa settimana</div>`
+          : items.map((item, idx) => renderItem(item, idx, col.id)).join('')
+        }
+      </div>
+    `;
+    board.appendChild(colEl);
+
+    // events: quick add via button
+    colEl.querySelector('.quick-add button').addEventListener('click', () => {
+      const input = colEl.querySelector('.quick-add input');
+      addItem(col.id, input.value.trim());
+      input.value = '';
+      input.focus();
+    });
+
+    // events: quick add via Enter
+    colEl.querySelector('.quick-add input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        addItem(col.id, e.target.value.trim());
+        e.target.value = '';
+      }
+    });
+  });
+
+  // delegazione eventi sugli item
+  document.querySelectorAll('.items').forEach(list => {
+    const colId = list.dataset.col;
+    list.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) {
+        const check = e.target.closest('.item-check');
+        if (check) toggleDone(colId, +check.dataset.idx);
+        return;
+      }
+      const action = btn.dataset.action;
+      const idx = +btn.dataset.idx;
+      if (action === 'delete') deleteItem(colId, idx);
+      if (action === 'carry')  carryItem(colId, idx);
+    });
+  });
+}
+
+function renderItem(item, idx, colId) {
+  return `
+    <div class="item ${item.done ? 'done' : ''}">
+      <div class="item-check" data-idx="${idx}" title="${item.done ? 'Segna da fare' : 'Segna fatto'}"></div>
+      <span class="item-text">${escHtml(item.text)}</span>
+      <div class="item-actions">
+        ${item.carried ? `<span class="item-carried" title="Riportata da settimana precedente">↩</span>` : ''}
+        <button class="item-carry" data-action="carry" data-idx="${idx}" title="Riporta alla prossima settimana">→</button>
+        <button class="item-delete" data-action="delete" data-idx="${idx}" title="Elimina">✕</button>
+      </div>
+    </div>
+  `;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── ACTIONS ──────────────────────────────────────────────
+function addItem(colId, text) {
+  if (!text) return;
+  const key = weekKey(currentWeekOffset);
+  ensureWeek(key);
+  data[key][colId].push({ text, done: false, carried: false, id: Date.now() });
+  save();
+  render();
+}
+
+function toggleDone(colId, idx) {
+  const key = weekKey(currentWeekOffset);
+  data[key][colId][idx].done = !data[key][colId][idx].done;
+  save();
+  render();
+}
+
+function deleteItem(colId, idx) {
+  const key = weekKey(currentWeekOffset);
+  data[key][colId].splice(idx, 1);
+  save();
+  render();
+}
+
+function carryItem(colId, idx) {
+  const key = weekKey(currentWeekOffset);
+  const item = data[key][colId][idx];
+  const nextKey = weekKey(currentWeekOffset + 1);
+  ensureWeek(nextKey);
+  // copia nella settimana successiva, l'originale resta intatto
+  const alreadyCarried = data[nextKey][colId].some(i => i.id === item.id);
+  if (!alreadyCarried) {
+    data[nextKey][colId].push({ ...item, done: false, carried: true, id: Date.now() });
+  }
+  save();
+  render();
+}
+
+// ── PERSISTENCE ──────────────────────────────────────────
+function save() {
+  localStorage.setItem('agenda_data', JSON.stringify(data));
+  if (githubConfig.token && githubConfig.repo) {
+    syncToGitHub();
+  }
+}
+
+function loadLocal() {
+  const raw = localStorage.getItem('agenda_data');
+  if (raw) {
+    try { data = JSON.parse(raw); } catch(e) { data = {}; }
+  }
+}
+
+// ── GITHUB SYNC ──────────────────────────────────────────
+async function syncToGitHub() {
+  const { token, repo, file } = githubConfig;
+  if (!token || !repo) return;
+  const url = `https://api.github.com/repos/${repo}/contents/${file}`;
+  setStatus('syncing');
+  try {
+    // Leggi SHA corrente
+    let sha = githubSha;
+    if (!sha) {
+      const r = await fetch(url, { headers: { Authorization: `token ${token}` } });
+      if (r.ok) { const j = await r.json(); sha = j.sha; githubSha = sha; }
+    }
+    // Scrivi
+    const body = { message: 'agenda update', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))) };
+    if (sha) body.sha = sha;
+    const w = await fetch(url, {
+      method: 'PUT',
+      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (w.ok) {
+      const j = await w.json();
+      githubSha = j.content.sha;
+      setStatus('ok');
+    } else {
+      setStatus('err');
+    }
+  } catch(e) { setStatus('err'); }
+}
+
+async function loadFromGitHub() {
+  const { token, repo, file } = githubConfig;
+  if (!token || !repo) return;
+  const url = `https://api.github.com/repos/${repo}/contents/${file}`;
+  setStatus('syncing');
+  try {
+    const r = await fetch(url, { headers: { Authorization: `token ${token}` } });
+    if (r.ok) {
+      const j = await r.json();
+      githubSha = j.sha;
+      const decoded = decodeURIComponent(escape(atob(j.content)));
+      data = JSON.parse(decoded);
+      localStorage.setItem('agenda_data', JSON.stringify(data));
+      setStatus('ok');
+      render();
+    } else if (r.status === 404) {
+      // file non esiste ancora, ok
+      setStatus('ok');
+    } else {
+      setStatus('err');
+    }
+  } catch(e) { setStatus('err'); }
+}
+
+function setStatus(state) {
+  const el = document.getElementById('syncStatus');
+  if (state === 'syncing') { el.className = 'sync-status'; el.textContent = '↻  sincronizzazione…'; }
+  else if (state === 'ok')  { el.className = 'sync-status ok'; el.textContent = '●  sincronizzato'; }
+  else if (state === 'err') { el.className = 'sync-status err'; el.textContent = '●  errore sync'; }
+  else { el.className = 'sync-status'; el.textContent = '●  non configurato'; }
+}
+
+// ── NAVIGATION ───────────────────────────────────────────
+document.getElementById('prevWeek').addEventListener('click', () => {
+  currentWeekOffset--; render();
+});
+document.getElementById('nextWeek').addEventListener('click', () => {
+  currentWeekOffset++; render();
+});
+document.getElementById('btnToday').addEventListener('click', () => {
+  currentWeekOffset = 0; render();
+});
+
+// ── SETTINGS MODAL ───────────────────────────────────────
+document.getElementById('btnSettings').addEventListener('click', () => {
+  document.getElementById('cfgToken').value = githubConfig.token;
+  document.getElementById('cfgRepo').value  = githubConfig.repo;
+  document.getElementById('cfgFile').value  = githubConfig.file;
+  document.getElementById('overlay').classList.add('open');
+});
+document.getElementById('btnCancel').addEventListener('click', () => {
+  document.getElementById('overlay').classList.remove('open');
+});
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('overlay'))
+    document.getElementById('overlay').classList.remove('open');
+});
+document.getElementById('btnSaveSettings').addEventListener('click', () => {
+  githubConfig.token = document.getElementById('cfgToken').value.trim();
+  githubConfig.repo  = document.getElementById('cfgRepo').value.trim();
+  githubConfig.file  = document.getElementById('cfgFile').value.trim() || 'agenda.json';
+  localStorage.setItem('gh_token', githubConfig.token);
+  localStorage.setItem('gh_repo',  githubConfig.repo);
+  localStorage.setItem('gh_file',  githubConfig.file);
+  githubSha = null;
+  document.getElementById('overlay').classList.remove('open');
+  if (githubConfig.token && githubConfig.repo) loadFromGitHub();
+  else setStatus('none');
+});
+
+// ── PRINT ────────────────────────────────────────────────
+document.getElementById('btnPrint').addEventListener('click', () => {
+  document.getElementById('printHeader').textContent = weekLabel(currentWeekOffset);
+  window.print();
+});
+
+// ── INIT ─────────────────────────────────────────────────
+loadLocal();
+if (githubConfig.token && githubConfig.repo) {
+  loadFromGitHub();
+} else {
+  setStatus('none');
+}
+render();
+</script>
+</body>
+</html>
