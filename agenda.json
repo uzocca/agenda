@@ -21,7 +21,14 @@
         "id": 1782081315412
       }
     ],
-    "studio": [],
+    "studio": [
+      {
+        "text": "Statuto gramsci",
+        "done": false,
+        "carried": false,
+        "id": 1782136810829
+      }
+    ],
     "personale": [],
     "tecnica": []
   }
