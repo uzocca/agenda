@@ -1,13 +1,6 @@
 {
   "2026-W24": {
-    "lavoro": [
-      {
-        "text": "Prova di nota sjdkkskkkksk jssbshske sijsiskskks jaksksksks sisj",
-        "done": false,
-        "carried": false,
-        "id": 1782076566034
-      }
-    ],
+    "lavoro": [],
     "studio": [],
     "personale": [],
     "tecnica": []
@@ -29,6 +22,30 @@
         "id": 1782136810829
       }
     ],
+    "personale": [],
+    "tecnica": []
+  },
+  "2026-W29": {
+    "lavoro": [],
+    "studio": [],
+    "personale": [],
+    "tecnica": []
+  },
+  "2026-W28": {
+    "lavoro": [],
+    "studio": [],
+    "personale": [],
+    "tecnica": []
+  },
+  "2026-W27": {
+    "lavoro": [],
+    "studio": [],
+    "personale": [],
+    "tecnica": []
+  },
+  "2026-W26": {
+    "lavoro": [],
+    "studio": [],
     "personale": [],
     "tecnica": []
   }
